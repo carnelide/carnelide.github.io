@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D WebGL Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background-color: #000;
+            color: white;
+        }
+        
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        
+        #ui-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        #header {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            z-index: 10;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        h2 {
+            font-size: 1.2rem;
+            font-weight: 300;
+            opacity: 0.7;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        #navigation {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            pointer-events: auto;
+            z-index: 10;
+        }
+        
+        .nav-btn {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-btn.active {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 1s ease;
+        }
+        
+        .loader {
+            width: 100px;
+            height: 100px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        #tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 20;
+        }
+        
+        #tooltip.visible {
+            opacity: 1;
+        }
+        
+        #contact-form-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 80%;
+            max-width: 500px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 8px;
+            padding: 2rem;
+            z-index: 20;
+            opacity: 0;
+            transition: all 0.5s ease;
+            pointer-events: none;
+        }
+        
+        #contact-form-container.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .contact-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group.full {
+            grid-column: span 2;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 4px;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        #close-form {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+        }
+    </style>    
+    <!-- This is recommended in the CDN section of this tutorial, but it stops the page from loading... 
+     https://threejs.org/manual/#en/installation
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js",
+            "gsap": "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js",
+          }
+        }
+    </script> 
+    -->
+</head>
+<body>
+    <div class="loading-screen">
+        <div class="loader"></div>
+    </div>
+    
+    <div id="ui-container">
+        <div id="header">
+            <h1>John Doe</h1>
+            <h2>Creative Developer & 3D Artist</h2>
+        </div>
+        
+        <div id="navigation">
+            <button class="nav-btn active" data-section="home">Home</button>
+            <button class="nav-btn" data-section="projects">Projects</button>
+            <button class="nav-btn" data-section="about">About</button>
+            <button class="nav-btn" data-section="skills">Skills</button>
+            <button class="nav-btn" data-section="contact">Contact</button>
+        </div>
+    </div>
+    
+    <div id="tooltip"></div>
+    
+    <div id="contact-form-container">
+        <button id="close-form">×</button>
+        <h3>Get In Touch</h3>
+        <p>Interested in working together or have a question? Feel free to reach out!</p>
+        
+        <form class="contact-form">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group full">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" required>
+            </div>
+            
+            <div class="form-group full">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit">Send Message</button>
+            </div>
+        </form>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+    <script>
+        // ===== THREE.JS PORTFOLIO =====
+        let scene, camera, renderer, raycaster, mouse, clock;
+        let currentSection = 'home';
+        let particles, particleGroup;
+        let projectPanels = [];
+        let skillNodes = [];
+        let aboutPanel;
+        let controls;
+        
+        // Content data
+        const projectsData = [
+            {
+                title: "Interactive Data Visualization",
+                description: "An interactive 3D data visualization platform that transforms complex datasets into intuitive visual representations. Built with Three.js and D3.js.",
+                color: 0x3498db
+            },
+            {
+                title: "Web-based 3D Product Configurator",
+                description: "A customizable 3D product configurator that allows users to interact with and personalize products in real-time. Developed with Three.js and React.",
+                color: 0x9b59b6
+            },
+            {
+                title: "Immersive Virtual Gallery",
+                description: "A virtual art gallery experience with spatial audio and interactive elements. Created using WebGL and custom shaders.",
+                color: 0x2ecc71
+            }
+        ];
+        
+        const skillsData = [
+            { name: "JavaScript", level: 0.9, color: 0xf1c40f },
+            { name: "Three.js", level: 0.85, color: 0xe74c3c },
+            { name: "WebGL", level: 0.8, color: 0x3498db },
+            { name: "React", level: 0.75, color: 0x2ecc71 },
+            { name: "Node.js", level: 0.7, color: 0x1abc9c },
+            { name: "Python", level: 0.65, color: 0x9b59b6 },
+            { name: "Blender", level: 0.8, color: 0xf39c12 },
+            { name: "UI/UX", level: 0.75, color: 0xd35400 }
+        ];
+        
+        const aboutData = {
+            text: "I'm a creative developer passionate about blending design and technology to create immersive digital experiences. With over 5 years of experience in web development and 3D graphics, I specialize in crafting interactive websites and applications that push the boundaries of what's possible on the web.\n\nMy background in both traditional design and programming allows me to approach projects with a unique perspective, focusing on both aesthetic appeal and technical performance. I'm constantly exploring new technologies and techniques to enhance my work and deliver cutting-edge solutions.",
+            color: 0xe74c3c
+        };
+        
+        // Initialize scene
+        function init() {
+            clock = new THREE.Clock();
+            
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.002);
+            
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
+            
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.body.appendChild(renderer.domElement);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+            
+            // Add particle background
+            createParticles();
+            
+            // Create content for each section
+            createHomeSection();
+            createProjectsSection();
+            createAboutSection();
+            createSkillsSection();
+            
+            // Setup raycaster for interaction
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            
+            // Event listeners
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('click', onClick);
+            
+            // Navigation event listeners
+            document.querySelectorAll('.nav-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const section = button.getAttribute('data-section');
+                    changeSection(section);
+                    
+                    // Update active button
+                    document.querySelectorAll('.nav-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    button.classList.add('active');
+                });
+            });
+            
+            // Contact form handling
+            document.getElementById('close-form').addEventListener('click', () => {
+                document.getElementById('contact-form-container').classList.remove('active');
+            });
+            
+            // Start animation loop
+            animate();
+            
+            // Hide loading screen after everything is loaded
+            setTimeout(() => {
+                document.querySelector('.loading-screen').style.opacity = 0;
+                setTimeout(() => {
+                    document.querySelector('.loading-screen').style.display = 'none';
+                }, 1000);
+            }, 2000);
+        }
+        
+        // Create particle background
+        function createParticles() {
+            particleGroup = new THREE.Group();
+            scene.add(particleGroup);
+            
+            const particleGeometry = new THREE.BufferGeometry();
+            const particleCount = 15000;
+            
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            
+            const colorOptions = [
+                new THREE.Color(0x3498db), // Blue
+                new THREE.Color(0x9b59b6), // Purple
+                new THREE.Color(0x2ecc71), // Green
+                new THREE.Color(0xe74c3c)  // Red
+            ];
+            
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                // Position (sphere distribution)
+                const radius = 100 * Math.random();
+                const phi = Math.acos(-1 + (2 * Math.random()));
+                const theta = 2 * Math.PI * Math.random();
+                
+                positions[i] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                positions[i + 2] = radius * Math.cos(phi);
+                
+                // Color
+                const color = colorOptions[Math.floor(Math.random() * colorOptions.length)];
+                colors[i] = color.r;
+                colors[i + 1] = color.g;
+                colors[i + 2] = color.b;
+            }
+            
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            const particleMaterial = new THREE.PointsMaterial({
+                size: 0.5,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            particles = new THREE.Points(particleGeometry, particleMaterial);
+            particleGroup.add(particles);
+        }
+        
+        // Create home section with 3D logo/avatar
+        function createHomeSection() {
+            // Create a central emblem/logo
+            const geometry = new THREE.TorusKnotGeometry(5, 1.5, 100, 16);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0xffffff,
+                shininess: 100,
+                transparent: true,
+                opacity: 0.9,
+                wireframe: false
+            });
+            
+            const centerpiece = new THREE.Mesh(geometry, material);
+            centerpiece.position.set(0, 0, 0);
+            centerpiece.userData = { type: 'home', interactive: true };
+            centerpiece.visible = true;
+            scene.add(centerpiece);
+            
+            // Create floating text elements
+            const titles = [
+                { text: "DEVELOPER", position: [-15, 8, -5] },
+                { text: "DESIGNER", position: [15, -8, -5] },
+                { text: "CREATIVE", position: [10, 12, -10] },
+                { text: "INNOVATOR", position: [-12, -12, -10] }
+            ];
+            
+            titles.forEach(title => {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 512;
+                canvas.height = 128;
+                
+                context.fillStyle = 'black';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.font = 'Bold 60px Arial';
+                context.fillStyle = 'white';
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                context.fillText(title.text, canvas.width / 2, canvas.height / 2);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                const material = new THREE.MeshBasicMaterial({
+                    map: texture,
+                    transparent: true,
+                    opacity: 0.8,
+                    side: THREE.DoubleSide
+                });
+                
+                const geometry = new THREE.PlaneGeometry(10, 2.5);
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.set(...title.position);
+                mesh.userData = { type: 'home', interactive: false };
+                mesh.visible = true;
+                
+                // Make the text always face the camera
+                mesh.lookAt(camera.position);
+                scene.add(mesh);
+            });
+        }
+        
+        // Create projects section with 3D panels
+        function createProjectsSection() {
+            projectsData.forEach((project, index) => {
+                // Create panel for project
+                const width = 12;
+                const height = 8;
+                
+                // Create text texture
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 1024;
+                canvas.height = 768;
+                
+                // Background
+                context.fillStyle = 'black';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Title
+                context.font = 'Bold 48px Arial';
+                context.fillStyle = '#' + new THREE.Color(project.color).getHexString();
+                context.textAlign = 'center';
+                context.fillText(project.title, canvas.width / 2, 100);
+                
+                // Description
+                context.font = '28px Arial';
+                context.fillStyle = 'white';
+                
+                // Wrap text
+                const maxWidth = canvas.width - 100;
+                const lineHeight = 36;
+                const words = project.description.split(' ');
+                let line = '';
+                let y = 200;
+                
+                for (let n = 0; n < words.length; n++) {
+                    const testLine = line + words[n] + ' ';
+                    const metrics = context.measureText(testLine);
+                    const testWidth = metrics.width;
+                    
+                    if (testWidth > maxWidth && n > 0) {
+                        context.fillText(line, canvas.width / 2, y);
+                        line = words[n] + ' ';
+                        y += lineHeight;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                context.fillText(line, canvas.width / 2, y);
+                
+                // Create texture and material
+                const texture = new THREE.CanvasTexture(canvas);
+                const material = new THREE.MeshBasicMaterial({
+                    map: texture,
+                    side: THREE.DoubleSide
+                });
+                
+                // Create panel mesh
+                const panelGeometry = new THREE.PlaneGeometry(width, height);
+                const panel = new THREE.Mesh(panelGeometry, material);
+                
+                // Position panels in a semicircle
+                const angle = (Math.PI / 4) * index - Math.PI / 4;
+                const radius = 20;
+                panel.position.x = Math.sin(angle) * radius;
+                panel.position.z = -Math.cos(angle) * radius;
+                panel.position.y = 0;
+                
+                // Rotate panel to face center
+                panel.lookAt(0, 0, 0);
+                
+                // Add frame with project color
+                const frameGeometry = new THREE.BoxGeometry(width + 0.5, height + 0.5, 0.2);
+                const frameMaterial = new THREE.MeshPhongMaterial({
+                    color: project.color,
+                    emissive: project.color,
+                    emissiveIntensity: 0.3
+                });
+                const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+                panel.add(frame);
+                frame.position.z = -0.1;
+                
+                // Set user data
+                panel.userData = {
+                    type: 'project',
+                    title: project.title,
+                    description: project.description,
+                    interactive: true
+                };
+                
+                // Hide initially
+                panel.visible = false;
+                
+                // Add to scene and store reference
+                scene.add(panel);
+                projectPanels.push(panel);
+            });
+        }
+        
+        // Create about section with 3D biography panel
+        function createAboutSection() {
+            const width = 18;
+            const height = 12;
+            
+            // Create text texture
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 1024;
+            canvas.height = 768;
+            
+            // Background
+            context.fillStyle = 'black';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Title
+            context.font = 'Bold 48px Arial';
+            context.fillStyle = '#' + new THREE.Color(aboutData.color).getHexString();
+            context.textAlign = 'center';
+            context.fillText("About Me", canvas.width / 2, 80);
+            
+            // Bio text
+            context.font = '24px Arial';
+            context.fillStyle = 'white';
+            
+            // Wrap text
+            const maxWidth = canvas.width - 100;
+            const lineHeight = 36;
+            const paragraphs = aboutData.text.split('\n');
+            let y = 160;
+            
+            paragraphs.forEach(paragraph => {
+                const words = paragraph.split(' ');
+                let line = '';
+                
+                for (let n = 0; n < words.length; n++) {
+                    const testLine = line + words[n] + ' ';
+                    const metrics = context.measureText(testLine);
+                    const testWidth = metrics.width;
+                    
+                    if (testWidth > maxWidth && n > 0) {
+                        context.fillText(line, canvas.width / 2, y);
+                        line = words[n] + ' ';
+                        y += lineHeight;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                context.fillText(line, canvas.width / 2, y);
+                y += lineHeight * 1.5; // Extra space between paragraphs
+            });
+            
+            // Create texture and material
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                side: THREE.DoubleSide
+            });
+            
+            // Create panel mesh
+            const panelGeometry = new THREE.PlaneGeometry(width, height);
+            aboutPanel = new THREE.Mesh(panelGeometry, material);
+            aboutPanel.position.set(0, 0, -20);
+            
+            // Add frame
+            const frameGeometry = new THREE.BoxGeometry(width + 0.5, height + 0.5, 0.2);
+            const frameMaterial = new THREE.MeshPhongMaterial({
+                color: aboutData.color,
+                emissive: aboutData.color,
+                emissiveIntensity: 0.3
+            });
+            const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+            aboutPanel.add(frame);
+            frame.position.z = -0.1;
+            
+            // Set user data
+            aboutPanel.userData = {
+                type: 'about',
+                interactive: true
+            };
+            
+            // Hide initially
+            aboutPanel.visible = false;
+            
+            // Add to scene
+            scene.add(aboutPanel);
+        }
+        
+        // Create skills section with interactive skill nodes
+        function createSkillsSection() {
+            skillsData.forEach((skill, index) => {
+                // Create spherical node for each skill
+                const size = 1 + skill.level * 1.5; // Size based on skill level
+                const geometry = new THREE.SphereGeometry(size, 32, 32);
+                const material = new THREE.MeshPhongMaterial({
+                    color: skill.color,
+                    emissive: skill.color,
+                    emissiveIntensity: 0.3,
+                    transparent: true,
+                    opacity: 0.9
+                });
+                
+                const node = new THREE.Mesh(geometry, material);
+                
+                // Position in a 3D grid formation
+                const positionRadius = 12;
+                const phi = Math.acos(-1 + (2 * index) / skillsData.length);
+                const theta = Math.sqrt(skillsData.length * Math.PI) * phi;
+                
+                node.position.x = positionRadius * Math.sin(phi) * Math.cos(theta);
+                node.position.y = positionRadius * Math.sin(phi) * Math.sin(theta);
+                node.position.z = positionRadius * Math.cos(phi) - 20;
+                
+                // Create text label
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 256;
+                canvas.height = 128;
+                
+                context.fillStyle = 'transparent';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                
+                context.font = 'Bold 36px Arial';
+                context.fillStyle = '#' + new THREE.Color(skill.color).getHexString();
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                context.fillText(skill.name, canvas.width / 2, canvas.height / 2);
+                
+                const labelTexture = new THREE.CanvasTexture(canvas);
+                const labelMaterial = new THREE.MeshBasicMaterial({
+                    map: labelTexture,
+                    transparent: true,
+                    opacity: 0.9,
+                    side: THREE.DoubleSide
+                });
+                
+                const labelGeometry = new THREE.PlaneGeometry(4, 2);
+                const label = new THREE.Mesh(labelGeometry, labelMaterial);
+                label.position.set(0, size + 1.5, 0);
+                
+                // Make label always face camera
+                label.lookAt(camera.position);
+                node.add(label);
+                
+                // Set user data
+                node.userData = {
+                    type: 'skill',
+                    name: skill.name,
+                    level: skill.level,
+                    interactive: true
+                };
+                
+                // Hide initially
+                node.visible = false;
+                
+                // Add to scene and store reference
+                scene.add(node);
+                skillNodes.push(node);
+            });
+        }
+        
+        // Handle window resize
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // Handle mouse movement for hover effects
+        function onMouseMove(event) {
+            event.preventDefault();
+            
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            // Check for hover on interactive objects
+            checkIntersection(event);
+        }
+        
+        // Check if mouse intersects with any interactive objects
+        function checkIntersection(event) {
+            raycaster.setFromCamera(mouse, camera);
+            
+            // Collect all visible interactive objects
+            const interactiveObjects = [];
+            
+            scene.traverse(function(object) {
+                if (object.userData && object.userData.interactive && object.visible) {
+                    interactiveObjects.push(object);
+                }
+            });
+            
+            const intersects = raycaster.intersectObjects(interactiveObjects);
+            
+            if (intersects.length > 0) {
+                const object = intersects[0].object;
+                document.body.style.cursor = 'pointer';
+                
+                // Show tooltip
+                const tooltip = document.getElementById('tooltip');
+                
+                let tooltipText = '';
+                if (object.userData.title) {
+                    tooltipText = object.userData.title;
+                } else if (object.userData.name) {
+                    tooltipText = `${object.userData.name} - ${Math.round(object.userData.level * 100)}%`;
+                } else if (object.userData.type) {
+                    tooltipText = object.userData.type.charAt(0).toUpperCase() + object.userData.type.slice(1);
+                }
+                
+                tooltip.textContent = tooltipText;
+                tooltip.style.left = `${event.clientX + 15}px`;
+                tooltip.style.top = `${event.clientY + 15}px`;
+                tooltip.classList.add('visible');
+                
+                // Scale up the object slightly
+                if (!object.userData.isHovered) {
+                    object.userData.isHovered = true;
+                    object.userData.originalScale = object.scale.clone();
+                    gsap.to(object.scale, { x: object.scale.x * 1.1, y: object.scale.y * 1.1, z: object.scale.z * 1.1, duration: 0.3 });
+                }
+            } else {
+                document.body.style.cursor = 'default';
+                
+                // Hide tooltip
+                document.getElementById('tooltip').classList.remove('visible');
+                
+                // Reset scales
+                scene.traverse(function(object) {
+                    if (object.userData && object.userData.isHovered) {
+                        object.userData.isHovered = false;
+                        if (object.userData.originalScale) {
+                            gsap.to(object.scale, { 
+                                x: object.userData.originalScale.x, 
+                                y: object.userData.originalScale.y, 
+                                z: object.userData.originalScale.z, 
+                                duration: 0.3 
+                            });
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Handle clicks on objects
+        function onClick() {
+            raycaster.setFromCamera(mouse, camera);
+            
+            // Collect all visible interactive objects
+            const interactiveObjects = [];
+            
+            scene.traverse(function(object) {
+                if (object.userData && object.userData.interactive && object.visible) {
+                    interactiveObjects.push(object);
+                }
+            });
+            
+            const intersects = raycaster.intersectObjects(interactiveObjects);
+            
+            if (intersects.length > 0) {
+                const object = intersects[0].object;
+                
+                // Handle click based on object type
+                if (object.userData.type === 'project') {
+                    // Could open more detailed view of project
+                    console.log(`Clicked on project: ${object.userData.title}`);
+                } else if (object.userData.type === 'skill') {
+                    // Could show skill details
+                    console.log(`Clicked on skill: ${object.userData.name}`);
+                } else if (object.userData.type === 'about') {
+                    // Could trigger animation of about panel
+                    console.log('Clicked on about panel');
+                }
+            }
+        }
+        
+        // Change active section with animation
+        function changeSection(section) {
+            // Don't do anything if it's the same section
+            if (section === currentSection) return;
+            
+            // Change camera position and scene based on section
+            switch(section) {
+                case 'home':
+                    animateToHomeSection();
+                    break;
+                case 'projects':
+                    animateToProjectsSection();
+                    break;
+                case 'about':
+                    animateToAboutSection();
+                    break;
+                case 'skills':
+                    animateToSkillsSection();
+                    break;
+                case 'contact':
+                    animateToContactSection();
+                    break;
+            }
+            
+            // Update current section
+            currentSection = section;
+        }
+        
+        // Animate camera and scene for home section
+        function animateToHomeSection() {
+            // Hide all non-home elements
+            hideAllSectionElements();
+            
+            // Show home elements
+            scene.traverse(object => {
+                if (object.userData && object.userData.type === 'home') {
+                    object.visible = true;
+                }
+            });
+            
+            // Animate camera
+            gsap.to(camera.position, {
+                x: 0,
+                y: 0,
+                z: 30,
+                duration: 2,
+                ease: "power2.inOut"
+            });
+            
+            // Animate particle system
+            gsap.to(particleGroup.rotation, {
+                x: 0,
+                y: 0,
+                z: 0,
+                duration: 2,
+                ease: "power2.inOut"
+            });
+            
+            // Hide contact form if open
+            document.getElementById('contact-form-container').classList.remove('active');
+        }
+        
+        // Animate camera and scene for projects section
+        function animateToProjectsSection() {
+            // Hide all non-project elements
+            hideAllSectionElements();
+            
+            // Show project panels with staggered animation
+            projectPanels.forEach((panel, index) => {
+                panel.visible = true;
+                
+                // Reset panel position and scale
+                gsap.set(panel.position, {
+                    y: -20
+                });
+                gsap.set(panel.scale, {
+                    x: 0.5,
+                    y: 0.5,
+                    z: 0.5
+                });
+                
+                // Animate panel
+                gsap.to(panel.position, {
+                    y: 0,
+                    duration: 1.5,
+                    delay: index * 0.2,
+                    ease: "elastic.out(1, 0.5)"
+                });
+                
+                gsap.to(panel.scale, {
+                    x: 1,
+                    y: 1,
+                    z: 1,
+                    duration: 1.5,
+                    delay: index * 0.2,
+                    ease: "elastic.out(1, 0.5)"
+                });
+            });
+            
+            // Animate camera
+            gsap.to(camera.position, {
+                x: 0,
+                y: 5,
+                z: 30,
+                duration: 2,
+                ease: "power2.inOut"
+            });
+            
+            // Animate particle system to create focus on projects
+            gsap.to(particleGroup.rotation, {
+                x: Math.PI / 8,
+                y: Math.PI / 4,
+                z: 0,
+                duration: 2,
+                ease: "power2.inOut"
+            });
+            
+            // Hide contact form if open
+            document.getElementById('contact-form-container').classList.remove('active');
+        }
+        
+        // Animate camera and scene for about section
+        function animateToAboutSection() {
+            // Hide all non-about elements
+            hideAllSectionElements();
+            
+            // Show about panel
+            aboutPanel.visible = true;
+            
+            // Reset panel position and rotation
+            gsap.set(aboutPanel.position, {
+                z: -40
+            });
+            gsap.set(aboutPanel.rotation, {
+                y: Math.PI
+            });
+            
+            // Animate panel
+            gsap.to(aboutPanel.position, {
+                z: -20,
+                duration: 1.5,
+                ease: "power3.out"
+            });
+            
+            gsap.to(aboutPanel.rotation, {
+                y: 0,
+                duration: 1.5,
+                ease: "power3.out"
+            });
+            
+            // Animate camera
+            gsap.to(camera.position, {
+                x: 0,
+                y: 0,
+                z: 25,
+                duration: 2,
+                ease: "power2.inOut"
+            });
+            
+            // Animate particle system
+            gsap.to(particleGroup.rotation, {
+                x: 0,
+                y: Math.PI / 2,
+                z: 0,
+                duration: 2,
+                ease: "power2.inOut"
+            });
+            
+            // Hide contact form if open
+            document.getElementById('contact-form-container').classList.remove('active');
+        }
+        
+        // Animate camera and scene for skills section
+        function animateToSkillsSection() {
+            // Hide all non-skill elements
+            hideAllSectionElements();
+            
+            // Show skill nodes with staggered animation
+            skillNodes.forEach((node, index) => {
+                node.visible = true;
+                
+                // Reset node position and scale
+                gsap.set(node.scale, {
+                    x: 0.1,
+                    y: 0.1,
+                    z: 0.1
+                });
+                
+                // Calculate original position
+                const originalPos = {
+                    x: node.position.x,
+                    y: node.position.y,
+                    z: node.position.z
+                };
+                
+                // Set node starting at center
+                gsap.set(node.position, {
+                    x: 0,
+                    y: 0,
+                    z: -20
+                });
+                
+                // Animate node explosion effect
+                gsap.to(node.position, {
+                    x: originalPos.x,
+                    y: originalPos.y,
+                    z: originalPos.z,
+                    duration: 2,
+                    delay: index * 0.1,
+                    ease: "power3.out"
+                });
+                
+                gsap.to(node.scale, {
+                    x: 1,
+                    y: 1,
+                    z: 1,
+                    duration: 1,
+                    delay: index * 0.1,
+                    ease: "elastic.out(1, 0.5)"
+                });
+            });
+            
+            // Animate camera
+            gsap.to(camera.position, {
+                x: 0,
+                y: 0,
+                z: 35,
+                duration: 2,
+                ease: "power2.inOut"
+            });
+            
+            // Animate particle system
+            gsap.to(particleGroup.rotation, {
+                x: Math.PI / 4,
+                y: -Math.PI / 4,
+                z: 0,
+                duration: 2,
+                ease: "power2.inOut"
+            });
+            
+            // Hide contact form if open
+            document.getElementById('contact-form-container').classList.remove('active');
+        }
+        
+        // Show contact form for contact section
+        function animateToContactSection() {
+            // First show home section as background
+            animateToHomeSection();
+            
+            // Then show contact form with animation
+            const contactForm = document.getElementById('contact-form-container');
+            contactForm.classList.add('active');
+        }
+        
+        // Hide all section-specific elements
+        function hideAllSectionElements() {
+            // Hide project panels
+            projectPanels.forEach(panel => {
+                panel.visible = false;
+            });
+            
+            // Hide about panel
+            if (aboutPanel) {
+                aboutPanel.visible = false;
+            }
+            
+            // Hide skill nodes
+            skillNodes.forEach(node => {
+                node.visible = false;
+            });
+            
+            // Hide home-specific elements
+            scene.traverse(object => {
+                if (object.userData && object.userData.type === 'home') {
+                    object.visible = false;
+                }
+            });
+        }
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime();
+            
+            // Rotate particles slightly for movement effect
+            if (particles) {
+                particles.rotation.x += 0.0001;
+                particles.rotation.y += 0.0002;
+            }
+            
+            // Gentle floating animations for visible objects
+            scene.traverse(object => {
+                if (object.userData && object.userData.interactive && object.visible) {
+                    // Skip if object is being hovered
+                    if (object.userData.isHovered) return;
+                    
+                    // Add subtle floating motion based on object type
+                    if (object.userData.type === 'project') {
+                        object.position.y += Math.sin(time + object.position.x) * 0.002;
+                    } else if (object.userData.type === 'skill') {
+                        object.position.y += Math.sin(time * 0.8 + object.position.x) * 0.01;
+                        object.rotation.y += 0.005;
+                    } else if (object.userData.type === 'home') {
+                        object.rotation.x += 0.001;
+                        object.rotation.y += 0.002;
+                    }
+                }
+                
+                // Make labels always face camera
+                if (object.userData && object.userData.type === 'skill') {
+                    object.children.forEach(child => {
+                        child.lookAt(camera.position);
+                    });
+                }
+            });
+            
+            // Make sure camera is always looking at scene center
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Initialize everything when the page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

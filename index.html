@@ -1,1 +1,569 @@
-Hello World
+<!DOCTYPE html>
+<!--
+This template is completely self-contained with:
+- Pure HTML structure
+- CSS in a <style> tag in the head section
+- Vanilla JavaScript in a <script> tag at the bottom
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Portfolio with Interactive Projects</title>
+    <style>
+        /* Global Styles - Minimal Academic Container */
+        :root {
+            --primary-color: #0366d6;
+            --text-color: #24292e;
+            --light-gray: #f6f8fa;
+            --border-color: #e1e4e8;
+            --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+        }
+        
+        header {
+            background-color: var(--light-gray);
+            padding: 2rem 0;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        nav {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+        
+        nav a {
+            margin: 0 1rem;
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        nav a:hover {
+            color: var(--primary-color);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #586069;
+        }
+        
+        .section {
+            margin: 3rem 0;
+        }
+        
+        .bio {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+        
+        .bio-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 2rem;
+        }
+        
+        .bio-text {
+            flex: 1;
+        }
+        
+        /* Project Styles */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .project-card {
+            background: #fff;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        .card-content {
+            padding: 1.5rem;
+        }
+        
+        .project-title {
+            margin-top: 0;
+            font-size: 1.4rem;
+        }
+        
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        
+        .tag {
+            background: var(--light-gray);
+            border-radius: 50px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .view-project {
+            display: inline-block;
+            margin-top: 1rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        /* Interactive Project Showcase */
+        .interactive-showcase {
+            margin: 3rem 0;
+            padding: 2rem;
+            background: var(--light-gray);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+        
+        /* Project 1 - Interactive Chart */
+        #project1-showcase {
+            height: 400px;
+            position: relative;
+        }
+        
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        
+        .bar {
+            position: absolute;
+            bottom: 0;
+            width: 40px;
+            background: var(--primary-color);
+            transition: height 1s ease;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            width: 40px;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+        
+        /* Project 2 - Image Gallery */
+        #project2-showcase {
+            text-align: center;
+        }
+        
+        .gallery {
+            display: flex;
+            overflow-x: auto;
+            gap: 1rem;
+            padding: 1rem 0;
+        }
+        
+        .gallery-item {
+            flex: 0 0 auto;
+            width: 200px;
+            height: 150px;
+            background-color: #ddd;
+            border-radius: 4px;
+            transition: transform 0.3s ease;
+        }
+        
+        .gallery-item:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Project 3 - Interactive Quiz */
+        #project3-showcase {
+            text-align: center;
+        }
+        
+        .quiz-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .quiz-question {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .quiz-option {
+            padding: 1rem;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .quiz-option:hover {
+            background-color: #f0f4f8;
+        }
+        
+        .quiz-option.selected {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .quiz-feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 4rem;
+            background-color: var(--light-gray);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .social-links {
+            margin-top: 1rem;
+        }
+        
+        .social-links a {
+            margin: 0 0.5rem;
+            color: #586069;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            .bio {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .bio-img {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+            
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quiz-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Minimal Academic Container (Option 1) -->
+    <header>
+        <div class="container">
+            <h1>Jane Doe, PhD</h1>
+            <p class="subtitle">Computer Science Researcher & Data Visualization Expert</p>
+            <nav>
+                <a href="#about">About</a>
+                <a href="#projects">Projects</a>
+                <a href="#publications">Publications</a>
+                <a href="#contact">Contact</a>
+            </nav>
+        </div>
+    </header>
+    
+    <main class="container">
+        <section id="about" class="section">
+            <div class="bio">
+                <img src="/api/placeholder/150/150" alt="Jane Doe" class="bio-img">
+                <div class="bio-text">
+                    <h2>About Me</h2>
+                    <p>I'm a computer science researcher specializing in data visualization and human-computer interaction. My work focuses on creating intuitive interfaces for complex data analysis.</p>
+                    <p>Currently, I'm an Assistant Professor at XYZ University where I lead the Interactive Data Lab. I received my PhD from ABC University in 2022.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="projects" class="section">
+            <h2>Featured Projects</h2>
+            <p>Explore my recent research projects and interactive data visualizations.</p>
+            
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="card-content">
+                        <h3 class="project-title">Data Visualization Framework</h3>
+                        <p>An interactive framework for exploring multi-dimensional datasets</p>
+                        <div class="project-tags">
+                            <span class="tag">D3.js</span>
+                            <span class="tag">JavaScript</span>
+                            <span class="tag">Data Viz</span>
+                        </div>
+                        <a href="#project1" class="view-project">View Project</a>
+                    </div>
+                </div>
+                
+                <div class="project-card">
+                    <div class="card-content">
+                        <h3 class="project-title">Urban Planning Simulator</h3>
+                        <p>Interactive simulation of urban development patterns</p>
+                        <div class="project-tags">
+                            <span class="tag">WebGL</span>
+                            <span class="tag">React</span>
+                            <span class="tag">GIS</span>
+                        </div>
+                        <a href="#project2" class="view-project">View Project</a>
+                    </div>
+                </div>
+                
+                <div class="project-card">
+                    <div class="card-content">
+                        <h3 class="project-title">ML Algorithm Explainer</h3>
+                        <p>Educational tool explaining machine learning concepts</p>
+                        <div class="project-tags">
+                            <span class="tag">Vue.js</span>
+                            <span class="tag">TensorFlow.js</span>
+                            <span class="tag">Education</span>
+                        </div>
+                        <a href="#project3" class="view-project">View Project</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Interactive Project Showcases (Option 2) -->
+        <section id="project1" class="interactive-showcase">
+            <h2>Data Visualization Framework</h2>
+            <p>This interactive data visualization framework allows users to explore relationships between variables in multi-dimensional datasets.</p>
+            
+            <div id="project1-showcase">
+                <div class="chart-container">
+                    <div class="bar" id="bar1" style="left: 50px; height: 100px;"></div>
+                    <div class="bar-label" style="left: 50px;">2020</div>
+                    
+                    <div class="bar" id="bar2" style="left: 120px; height: 150px;"></div>
+                    <div class="bar-label" style="left: 120px;">2021</div>
+                    
+                    <div class="bar" id="bar3" style="left: 190px; height: 200px;"></div>
+                    <div class="bar-label" style="left: 190px;">2022</div>
+                    
+                    <div class="bar" id="bar4" style="left: 260px; height: 120px;"></div>
+                    <div class="bar-label" style="left: 260px;">2023</div>
+                    
+                    <div class="bar" id="bar5" style="left: 330px; height: 250px;"></div>
+                    <div class="bar-label" style="left: 330px;">2024</div>
+                </div>
+                
+                <div style="margin-top: 40px;">
+                    <button id="animate-chart" style="padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">Animate Data</button>
+                </div>
+            </div>
+        </section>
+        
+        <section id="project2" class="interactive-showcase">
+            <h2>Urban Planning Simulator</h2>
+            <p>Explore different urban development scenarios and their impact on city infrastructure and sustainability.</p>
+            
+            <div id="project2-showcase">
+                <div class="gallery">
+                    <div class="gallery-item"></div>
+                    <div class="gallery-item"></div>
+                    <div class="gallery-item"></div>
+                    <div class="gallery-item"></div>
+                    <div class="gallery-item"></div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button id="prev-image" style="padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">Previous</button>
+                    <button id="next-image" style="padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">Next</button>
+                </div>
+            </div>
+        </section>
+        
+        <section id="project3" class="interactive-showcase">
+            <h2>ML Algorithm Explainer</h2>
+            <p>Test your knowledge of machine learning concepts with this interactive quiz.</p>
+            
+            <div id="project3-showcase">
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        What algorithm is best suited for classification problems with non-linear decision boundaries?
+                    </div>
+                    
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Linear Regression</div>
+                        <div class="quiz-option" data-correct="false">Logistic Regression</div>
+                        <div class="quiz-option" data-correct="true">Support Vector Machine</div>
+                        <div class="quiz-option" data-correct="false">K-Means Clustering</div>
+                    </div>
+                    
+                    <div class="quiz-feedback"></div>
+                    
+                    <div style="margin-top: 20px;">
+                        <button id="check-answer" style="padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">Check Answer</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="publications" class="section">
+            <h2>Publications</h2>
+            <ul style="list-style-type: none; padding: 0;">
+                <li style="margin-bottom: 1rem;">
+                    <strong>Interactive Data Exploration in Educational Settings</strong><br>
+                    J. Doe, A. Smith, B. Johnson<br>
+                    CHI Conference on Human Factors in Computing Systems, 2024
+                </li>
+                <li style="margin-bottom: 1rem;">
+                    <strong>Visual Analytics for Urban Mobility Patterns</strong><br>
+                    J. Doe, C. Williams<br>
+                    IEEE Transactions on Visualization and Computer Graphics, 2023
+                </li>
+                <li style="margin-bottom: 1rem;">
+                    <strong>Explainable AI through Interactive Visualization</strong><br>
+                    J. Doe, D. Brown, E. Martinez<br>
+                    International Conference on Information Visualization, 2022
+                </li>
+            </ul>
+        </section>
+        
+        <section id="contact" class="section">
+            <h2>Contact</h2>
+            <p>Feel free to reach out to me at <a href="mailto:jane.doe@example.edu">jane.doe@example.edu</a> or connect with me on social media.</p>
+            
+            <div class="social-links">
+                <a href="#">Twitter</a> |
+                <a href="#">LinkedIn</a> |
+                <a href="#">GitHub</a> |
+                <a href="#">Google Scholar</a>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Jane Doe. All rights reserved.</p>
+            <p>Built with GitHub Pages</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Interactive Chart Animation
+        document.getElementById('animate-chart').addEventListener('click', function() {
+            const bars = document.querySelectorAll('.bar');
+            bars.forEach(bar => {
+                const randomHeight = Math.floor(Math.random() * 250) + 50;
+                bar.style.height = randomHeight + 'px';
+            });
+        });
+        
+        // Image Gallery Navigation
+        const galleryItems = document.querySelectorAll('.gallery-item');
+        let currentImageIndex = 0;
+        
+        function updateGalleryFocus() {
+            galleryItems.forEach((item, index) => {
+                if (index === currentImageIndex) {
+                    item.style.transform = 'scale(1.1)';
+                    item.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                } else {
+                    item.style.transform = 'scale(1)';
+                    item.style.boxShadow = 'none';
+                }
+            });
+        }
+        
+        document.getElementById('next-image').addEventListener('click', function() {
+            currentImageIndex = (currentImageIndex + 1) % galleryItems.length;
+            updateGalleryFocus();
+        });
+        
+        document.getElementById('prev-image').addEventListener('click', function() {
+            currentImageIndex = (currentImageIndex - 1 + galleryItems.length) % galleryItems.length;
+            updateGalleryFocus();
+        });
+        
+        // Quiz Interaction
+        const quizOptions = document.querySelectorAll('.quiz-option');
+        const checkAnswerBtn = document.getElementById('check-answer');
+        const feedbackElement = document.querySelector('.quiz-feedback');
+        let selectedOption = null;
+        
+        quizOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                quizOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                selectedOption = this;
+            });
+        });
+        
+        checkAnswerBtn.addEventListener('click', function() {
+            if (!selectedOption) {
+                feedbackElement.style.display = 'block';
+                feedbackElement.style.backgroundColor = '#f8d7da';
+                feedbackElement.textContent = 'Please select an answer first.';
+                return;
+            }
+            
+            const isCorrect = selectedOption.getAttribute('data-correct') === 'true';
+            
+            feedbackElement.style.display = 'block';
+            
+            if (isCorrect) {
+                feedbackElement.style.backgroundColor = '#d4edda';
+                feedbackElement.textContent = 'Correct! Support Vector Machines are excellent for non-linear classification problems.';
+            } else {
+                feedbackElement.style.backgroundColor = '#f8d7da';
+                feedbackElement.textContent = 'Incorrect. Support Vector Machines would be the best choice for non-linear classification problems.';
+            }
+        });
+        
+        // Initialize gallery focus
+        updateGalleryFocus();
+    </script>
+</body>
+</html>
